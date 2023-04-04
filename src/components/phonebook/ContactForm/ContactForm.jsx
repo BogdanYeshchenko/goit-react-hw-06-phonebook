@@ -1,11 +1,16 @@
-import PropTypes from 'prop-types';
 import { useState } from 'react';
 import { nanoid } from 'nanoid';
 import css from './ContactForm.module.css';
+import { useDispatch, useSelector } from 'react-redux';
+import { addContacts } from 'redux/phoneBook/phoneBookSlice';
+import { toast } from 'react-toastify';
 
-export const ContactForm = ({ onAddContact }) => {
+export const ContactForm = () => {
   const [name, setName] = useState('');
   const [number, setNamber] = useState('');
+  const contacts = useSelector(state => state.phoneBook.contacts);
+
+  const dispatch = useDispatch();
 
   const handleFormEvent = e => {
     const name = e.target.name;
@@ -26,11 +31,16 @@ export const ContactForm = ({ onAddContact }) => {
   const onFormSabmit = e => {
     e.preventDefault();
 
-    onAddContact({
-      id: nanoid(),
-      name: name,
-      number: number,
-    });
+    const contact = { id: nanoid(), name: name, number: number };
+    const isNewContactNew = contacts.find(
+      el => el.name.toLowerCase() === name.toLowerCase()
+    );
+    const notify = () =>
+      toast.warn(`${name} is already in contacts.`, {
+        theme: 'dark',
+      });
+
+    isNewContactNew ? notify() : dispatch(addContacts(contact));
 
     setName('');
     setNamber('');
@@ -69,8 +79,4 @@ export const ContactForm = ({ onAddContact }) => {
       </button>
     </form>
   );
-};
-
-ContactForm.propTypes = {
-  onAddContact: PropTypes.func.isRequired,
 };
